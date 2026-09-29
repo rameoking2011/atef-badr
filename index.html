@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="عاطف بدر لتجارة السيارات">
 <meta property="og:title" content="عاطف بدر لتجارة السيارات — مدينة نصر">
 <meta property="og:description" content="استيراد وتجارة السيارات. عربيات استلام فوري في معرض مدينة نصر، ميدان جاردينيا أول طريق السويس.">
-<meta property="og:image" content="https://rameoking2011.github.io/atef-badr/assets/img/og-image.jpg">
+<meta property="og:image" content="https://rameoking2011.github.io/atef-badr/assets/img/og-image.jpg?v=seal">
 <meta property="og:url" content="https://rameoking2011.github.io/atef-badr/">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -28,6 +28,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Manrope:wght@500;600&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&text=ATEF%20BADR&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@700&text=%20%D8%A3%D8%A7%D8%A8%D8%AA%D8%AE%D8%AF%D8%B1%D8%B4%D8%B9%D9%83%D9%84%D9%85%D9%86%D9%88%D9%8A&display=swap">
 <link rel="preload" as="image" href="assets/img/hero-1660.webp" imagesrcset="assets/img/hero-1200.webp 1200w, assets/img/hero-1660.webp 1660w" imagesizes="100vw" media="(min-width: 901px)" fetchpriority="high">
 <link rel="preload" as="image" href="assets/img/hero-m-900.webp" imagesrcset="assets/img/hero-m-900.webp 900w, assets/img/hero-m-1180.webp 1180w" imagesizes="100vw" media="(max-width: 900px)" fetchpriority="high">
 <link rel="stylesheet" href="assets/css/site.css">
@@ -78,6 +79,7 @@
   <symbol id="i-ig" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/></g><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.6v12.8a1 1 0 0 0 1.53.85l10.2-6.4a1 1 0 0 0 0-1.7L9.53 4.75A1 1 0 0 0 8 5.6z"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+  <symbol id="i-flip" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.4-6.4L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.4 6.4L3 16"/><path d="M3 21v-5h5"/></g></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M4 8.5h16M4 15.5h16"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></symbol>
   <symbol id="i-prev" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"/></symbol>
@@ -99,6 +101,8 @@
   </div>
   <div class="intro__bar" aria-hidden="true"></div>
   <div class="intro__flare" aria-hidden="true"></div>
+  <div class="intro__seal" aria-hidden="true"><img src="assets/img/emblem-seal.webp" alt="" width="256" height="256"></div>
+  <div class="intro__ring" aria-hidden="true"></div>
   <div class="intro__sub" aria-hidden="true">
     <div class="intro__latin" dir="ltr">ATEF BADR</div>
     <div class="intro__tag">لتجارة واستيراد السيارات</div>
@@ -109,6 +113,7 @@
 <header class="site-header">
   <div class="container site-header__bar">
     <a class="brand" href="#top" aria-label="عاطف بدر لتجارة السيارات، الرئيسية">
+      <img class="brand__seal" src="assets/img/emblem-seal.webp" alt="" width="256" height="256">
       <span class="brand__name wordmark"></span>
       <span class="brand__tag">لتجارة<br>السيارات</span>
     </a>
@@ -196,10 +201,47 @@
     </div>
   </section>
 
+  <section class="persona" id="persona" aria-labelledby="persona-title">
+    <canvas class="persona__dust" aria-hidden="true"></canvas>
+    <div class="container persona__grid">
+      <div class="persona__copy reveal">
+        <p class="overline overline--light"><span class="latin">02</span>وجه المعرض</p>
+        <h2 id="persona-title">الاسم تعرفه..<br>والوش كمان.</h2>
+        <p class="persona__lead">عاطف بدر بنفسه بيعرض العربيات في الريلز، والختم ده بقى علامته اللي بيعرفها أكتر من <span class="latin" dir="ltr">230</span> ألف متابع على فيسبوك.</p>
+        <blockquote class="persona__quote">
+          <p>اختيار الكبار من أول المشوار لعند باب الدار</p>
+          <cite>عاطف بدر</cite>
+        </blockquote>
+        <div class="persona__actions">
+          <a class="btn btn--gold" href="#reels">شوفه في الريلز<svg class="icon"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--ghost" href="https://wa.me/201284883885" data-wa target="_blank" rel="noopener"><svg class="icon"><use href="#i-wa"/></svg>كلّمه واتساب</a>
+        </div>
+      </div>
+      <div class="persona__stage">
+        <div class="halo" aria-hidden="true"><i></i><i></i><i></i></div>
+        <button class="coin" type="button" aria-pressed="false" aria-label="ختم عاطف بدر. دوس عشان تقلبه">
+          <span class="coin__body">
+            <span class="coin__edge" aria-hidden="true"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><i style="--i:5"></i><i style="--i:6"></i><i style="--i:7"></i><i style="--i:8"></i><i style="--i:9"></i><i style="--i:10"></i></span>
+            <span class="coin__face coin__face--front">
+              <img src="assets/img/emblem-face.webp" alt="ختم عاطف بدر: رسم لوجهه بالنضارة، والعصاية برأس الأسد، وحرفين AB" width="960" height="960" loading="lazy" decoding="async">
+              <span class="coin__rim"></span><span class="coin__gloss"></span>
+            </span>
+            <span class="coin__face coin__face--back">
+              <img src="assets/img/emblem-relief.webp" alt="نفس الختم محفور بالدهب" width="960" height="960" loading="lazy" decoding="async">
+              <span class="coin__rim"></span><span class="coin__gloss"></span>
+            </span>
+          </span>
+        </button>
+        <span class="coin__shadow" aria-hidden="true"></span>
+        <p class="coin__hint" aria-hidden="true"><svg class="icon"><use href="#i-flip"/></svg>دوس على الختم يتقلب</p>
+      </div>
+    </div>
+  </section>
+
   <section class="reels" id="reels" aria-labelledby="reels-title">
     <div class="container reels__head">
       <header class="section-head reveal">
-        <p class="overline overline--light"><span class="latin">02</span>الريلز</p>
+        <p class="overline overline--light"><span class="latin">03</span>الريلز</p>
         <h2 id="reels-title">من قلب المعرض.</h2>
         <p class="section-lead">عاطف بدر بيعرض العربيات بنفسه على صفحة المعرض. شوف التفاصيل على الطبيعة قبل ما تيجي.</p>
       </header>
@@ -225,7 +267,7 @@
     <div class="request__shade"></div>
     <div class="container request__inner">
       <div class="request__panel reveal">
-        <p class="overline overline--light"><span class="latin">03</span>على طلبك</p>
+        <p class="overline overline--light"><span class="latin">04</span>على طلبك</p>
         <h2 id="request-title">عربيتك مش في المعرض؟<br>قولنا عليها.</h2>
         <p class="request__text">ابعتلنا الماركة والموديل والسنة، وفريق المعرض يرد عليك بالمتاح أو بإمكانية توفيرها، بخبرة في الاستيراد والشحن والتخليص الجمركي.</p>
         <form class="request__form" id="request-form" novalidate>
@@ -258,7 +300,7 @@
   <section class="section section--paper-2" id="services" aria-labelledby="services-title">
     <div class="container">
       <header class="section-head reveal">
-        <p class="overline"><span class="latin">04</span>خدماتنا</p>
+        <p class="overline"><span class="latin">05</span>خدماتنا</p>
         <h2 id="services-title">خبرة في كل خطوة.</h2>
       </header>
       <ul class="services">
@@ -293,7 +335,7 @@
     <div class="container">
     <div class="experience__copy">
       <div class="reveal">
-        <p class="overline overline--light"><span class="latin">05</span>تجربة عاطف بدر</p>
+        <p class="overline overline--light"><span class="latin">06</span>تجربة عاطف بدر</p>
         <h2 id="experience-title">من أول نظرة،<br>لحد مفتاح عربيتك.</h2>
       </div>
       <div class="steps-wrap reveal">
@@ -312,7 +354,7 @@
   <section class="section section--paper visit" id="visit" aria-labelledby="visit-title">
     <div class="container visit__grid">
       <div class="visit__info reveal">
-        <p class="overline"><span class="latin">06</span>زورنا</p>
+        <p class="overline"><span class="latin">07</span>زورنا</p>
         <h2 id="visit-title">مستنيّينك في مدينة نصر.</h2>
         <address class="visit__address">
           <p>ميدان جاردينيا، طريق الممرات العسكرية<br>أول طريق السويس، مدينة نصر، القاهرة</p>
@@ -344,6 +386,7 @@
   <div class="container site-footer__grid">
     <div class="site-footer__brand">
       <a class="brand" href="#top" aria-label="عاطف بدر لتجارة السيارات، أعلى الصفحة">
+        <img class="brand__seal" src="assets/img/emblem-seal.webp" alt="" width="256" height="256" loading="lazy">
         <span class="brand__name wordmark"></span>
         <span class="brand__tag">لتجارة<br>السيارات</span>
       </a>

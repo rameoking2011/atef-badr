@@ -19,7 +19,7 @@
     html.style.overflow = 'hidden';
 
     const VIEWBOX_WIDTH = 4090;
-    const EXIT_AT = 3000;
+    const EXIT_AT = 3450;
     const DOORS = { delay: 150, duration: 950, easing: 'cubic-bezier(.76, 0, .24, 1)' };
     const anims = [];
     const play = (el, frames, opts) => {
@@ -42,6 +42,8 @@
     ], { easing: 'ease-out', ...opts });
     const dust = $('.intro__dust', intro);
     const heroMark = $('.hero__title .wordmark');
+    const seal = $('.intro__seal', intro);
+    const headerSeal = $('.site-header .brand__seal');
     const dustFx = makeDust(dust);
     dustFx.start();
 
@@ -67,6 +69,20 @@
       { delay: 2150, duration: 1000, easing: 'cubic-bezier(.45, 0, .2, 1)' });
     play($('.intro__latin', intro), [{ opacity: 0, letterSpacing: '.9em' }, { opacity: 1, letterSpacing: '.45em' }], { delay: 2050, duration: 1100 });
     play($('.intro__tag', intro), [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { delay: 2300, duration: 800 });
+    // his seal is stamped onto the light line
+    play(seal, [
+      { opacity: 0, transform: 'translate(-50%, -50%) scale(2.4) rotate(-24deg)', filter: 'blur(3px)' },
+      { opacity: 1, transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', filter: 'blur(0px)' },
+    ], { delay: 2300, duration: 460, easing: 'cubic-bezier(.55, 0, .8, .2)' });
+    play($('.intro__ring', intro), [
+      { opacity: 0.95, transform: 'translate(-50%, -50%) scale(.95)' },
+      { opacity: 0, transform: 'translate(-50%, -50%) scale(2.8)' },
+    ], { delay: 2760, duration: 950, fill: 'forwards' });
+    flash(0.5, 0.8, 2, { delay: 2740, duration: 700, fill: 'none' });
+    play(mark, [
+      { transform: 'translateY(0)' }, { transform: 'translateY(4px)', offset: 0.25 },
+      { transform: 'translateY(-2px)', offset: 0.6 }, { transform: 'translateY(0)' },
+    ], { delay: 2760, duration: 340, easing: 'ease-out', fill: 'none' });
 
     let timer = 0;
     let finished = false;
@@ -107,6 +123,18 @@
         play(mark, [{ transform: 'none' }, { transform: `translate(${dx}px, ${dy}px) scale(${to.width / from.width})` }], DOORS);
       } else {
         fadeOut(mark, 500);
+      }
+      const sFrom = seal.getBoundingClientRect();
+      const sTo = headerSeal && headerSeal.getBoundingClientRect();
+      if (sTo && sTo.width) {
+        const dx = sTo.left + sTo.width / 2 - (sFrom.left + sFrom.width / 2);
+        const dy = sTo.top + sTo.height / 2 - (sFrom.top + sFrom.height / 2);
+        play(seal, [
+          { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' },
+          { opacity: 1, transform: `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(${sTo.width / sFrom.width})` },
+        ], DOORS);
+      } else {
+        fadeOut(seal, 400);
       }
       timer = setTimeout(done, DOORS.delay + DOORS.duration + 30);
     };
@@ -290,6 +318,81 @@
       const current = $('[data-current]', track.closest('.car'));
       if (current) current.textContent = String(Math.round(Math.abs(track.scrollLeft) / track.clientWidth) + 1);
     }, true);
+  }
+
+  /* ---------- the seal: a gold coin that spins in, leans toward the pointer, and flips on tap ---------- */
+  const coin = $('.coin');
+  const persona = $('#persona');
+  if (coin && persona) {
+    const body = $('.coin__body', coin);
+    const stage = $('.persona__stage', persona);
+    let flip = 0;
+    let flipTarget = 0;
+    let spin = 0;
+    let rx = 0;
+    let ry = 0;
+    let tx = 0;
+    let ty = 0;
+    let hovering = false;
+    let visible = false;
+    let spinStart = 0;
+    let struck = false;
+    let raf = 0;
+    const render = () => {
+      body.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${(flip + spin + ry).toFixed(2)}deg)`;
+      coin.style.setProperty('--gx', `${(32 + ry * 1.3).toFixed(1)}%`);
+      coin.style.setProperty('--gy', `${(26 - rx * 1.3).toFixed(1)}%`);
+    };
+    const flipCoin = () => {
+      flipTarget += 180;
+      coin.setAttribute('aria-pressed', String((flipTarget / 180) % 2 === 1));
+      if (calm) { flip = flipTarget; render(); } else kick();
+    };
+    const frame = (t) => {
+      raf = 0;
+      if (spinStart) {
+        const k = Math.min((t - spinStart) / 2600, 1);
+        spin = -900 * Math.pow(1 - k, 3);
+        body.style.scale = String(0.72 + 0.28 * (1 - Math.pow(1 - k, 3)));
+        if (k >= 0.93 && !struck) { struck = true; stage.classList.add('is-struck'); }
+        if (k >= 1) spinStart = 0;
+      }
+      if (!hovering) { tx = Math.sin(t / 1700) * 5; ty = Math.sin(t / 2300) * 11; }
+      rx += (tx - rx) * 0.08;
+      ry += (ty - ry) * 0.08;
+      flip += (flipTarget - flip) * 0.085;
+      render();
+      if (visible) kick();
+    };
+    const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+    coin.addEventListener('click', flipCoin);
+    render();
+    if (!calm && 'IntersectionObserver' in window) {
+      stage.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        const r = coin.getBoundingClientRect();
+        hovering = true;
+        ty = ((e.clientX - r.left) / r.width - 0.5) * 34;
+        tx = -((e.clientY - r.top) / r.height - 0.5) * 26;
+      });
+      stage.addEventListener('pointerleave', () => { hovering = false; });
+      const dust = makeDust($('.persona__dust', persona), { count: 50, glow: 0.9 });
+      new IntersectionObserver(([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible) { dust.start(); kick(); } else dust.stop();
+      }).observe(persona);
+      // the first time the coin comes into view it spins in and lands on his face
+      spin = -900;
+      body.style.scale = '0.72';
+      render();
+      const once = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        once.disconnect();
+        spinStart = performance.now();
+        kick();
+      }, { threshold: 0.45 });
+      once.observe(coin);
+    }
   }
 
   /* ---------- reels from the showroom's Facebook page ----------
