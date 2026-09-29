@@ -12,10 +12,10 @@
   const waLink = (text) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-  /* ---------- intro (once per session): a light line, the name written in gold, then the doors open ---------- */
+  /* ---------- intro (every load): a light line, the name written in gold, then the doors open ---------- */
   const intro = $('.intro');
   if (intro && html.classList.contains('intro-on')) {
-    try { sessionStorage.setItem('ab-intro', '1'); } catch (e) {}
+    if (!location.hash) window.scrollTo(0, 0);
     html.style.overflow = 'hidden';
 
     const VIEWBOX_WIDTH = 4090;

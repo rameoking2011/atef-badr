@@ -37,7 +37,12 @@
   h.className = h.className.replace('no-js', 'js');
   try {
     var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!calm && !sessionStorage.getItem('ab-intro') && !/[?&]intro=0/.test(location.search)) h.classList.add('intro-on');
+    // the intro plays on every load, so a refresh replays it (?intro=0 skips it)
+    if (!calm && !/[?&]intro=0/.test(location.search)) {
+      h.classList.add('intro-on');
+      // start from the top, so the name lands in its place in the hero
+      if (!location.hash && 'scrollRestoration' in history) history.scrollRestoration = 'manual';
+    }
     else if (!calm) h.classList.add('hero-enter');
   } catch (e) {}
 })(document.documentElement);
