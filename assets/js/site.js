@@ -44,8 +44,7 @@
     const heroMark = $('.hero__title .wordmark');
     const seal = $('.intro__seal', intro);
     const headerSeal = $('.site-header .brand__seal');
-    const dustFx = makeDust(dust);
-    dustFx.start();
+    seedMotes(dust, 70);
 
     // keep the tracing line about 1.6px wide at any screen size
     const unit = mark.getBoundingClientRect().width / VIEWBOX_WIDTH;
@@ -90,7 +89,6 @@
       if (finished) return;
       finished = true;
       clearTimeout(timer);
-      dustFx.stop();
       html.classList.remove('intro-on', 'intro-off');
       html.style.overflow = '';
       anims.forEach((a) => a.cancel());
@@ -149,64 +147,27 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') skip(); });
   }
 
-  // drifting gold motes (intro and hero); start/stop so nothing runs off-screen
-  function makeDust(canvas, { count = 90, glow = 1 } = {}) {
-    const ctx = canvas && canvas.getContext && canvas.getContext('2d');
-    if (!ctx) return { start() {}, stop() {} };
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let w = 0;
-    let h = 0;
-    let raf = 0;
-    let motes = [];
-    const setup = () => {
-      w = canvas.clientWidth;
-      h = canvas.clientHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      motes = Array.from({ length: Math.round(count * (w < 700 ? 0.5 : 1)) }, () => {
-        const big = Math.random() < 0.12;
-        return {
-          x: Math.random() * w,
-          y: h * (0.15 + Math.random() * 0.8),
-          r: big ? 2.4 + Math.random() * 3 : 0.5 + Math.random() * 1.3,
-          big,
-          vx: (Math.random() - 0.5) * 0.2,
-          vy: -(0.12 + Math.random() * 0.4),
-          a: (0.2 + Math.random() * 0.6) * glow,
-          t: Math.random() * Math.PI * 2,
-        };
-      });
-    };
-    const tick = () => {
-      ctx.clearRect(0, 0, w, h);
-      for (const m of motes) {
-        m.x += m.vx;
-        m.y += m.vy;
-        m.t += 0.035;
-        if (m.y < -12) { m.y = h + 12; m.x = Math.random() * w; }
-        ctx.globalAlpha = m.a * (0.55 + 0.45 * Math.sin(m.t)) * (m.big ? 0.3 : 1);
-        ctx.shadowBlur = m.big ? 14 : 0;
-        ctx.shadowColor = '#d6b47a';
-        ctx.fillStyle = '#efd9ad';
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    return {
-      start() {
-        if (raf) return;
-        if (!w) setup();
-        if (w) tick();
-      },
-      stop() {
-        cancelAnimationFrame(raf);
-        raf = 0;
-      },
-    };
+  // drifting gold dust: tiny CSS-animated specks. They run on the GPU, so the page does no work per frame
+  // (a canvas redrawn from JavaScript kept phones recalculating the page 60 times a second).
+  function seedMotes(box, count) {
+    if (!box) return;
+    const n = Math.round(count * (window.innerWidth < 700 ? 0.5 : 1));
+    let out = '';
+    for (let i = 0; i < n; i++) {
+      const big = Math.random() < 0.12;
+      const size = big ? 16 + Math.random() * 18 : 2 + Math.random() * 2.6;
+      const alpha = (0.25 + Math.random() * 0.6) * (big ? 0.4 : 1);
+      out += `<i class="mote${big ? ' mote--bloom' : ''}" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(20 + Math.random() * 85).toFixed(1)}%;`
+        + `width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;opacity:${alpha.toFixed(2)};`
+        + `--path:mote-${Math.random() < 0.5 ? 'l' : 'r'};--dur:${(10 + Math.random() * 12).toFixed(1)}s;--delay:${(-Math.random() * 22).toFixed(1)}s"></i>`;
+    }
+    box.innerHTML = out;
   }
+  // pause the specks while their section is off screen
+  const pauseOffscreen = (box, section) => {
+    if (!box || !section || !('IntersectionObserver' in window)) return;
+    new IntersectionObserver(([entry]) => box.classList.toggle('is-paused', !entry.isIntersecting)).observe(section);
+  };
 
   /* ---------- WhatsApp links get a ready-made first message ---------- */
   $$('a[data-wa]').forEach((a) => { a.href = waLink(a.dataset.wa || GENERAL_MSG); });
@@ -320,78 +281,75 @@
     }, true);
   }
 
-  /* ---------- the seal: a gold coin that spins in, leans toward the pointer, and flips on tap ---------- */
+  /* ---------- the seal: a gold coin that spins in, sways, leans toward the mouse and flips on tap ----------
+     Two image faces and three light wrappers. Every movement is a CSS or Web Animations transform, so it
+     runs on the GPU and stays smooth on phones even while the reels' players load just below. */
   const coin = $('.coin');
   const persona = $('#persona');
   if (coin && persona) {
-    const body = $('.coin__body', coin);
+    const hoverEl = $('.coin__hover', coin);
+    const spinEl = $('.coin__spin', coin);
     const stage = $('.persona__stage', persona);
-    let flip = 0;
-    let flipTarget = 0;
-    let spin = 0;
-    let rx = 0;
-    let ry = 0;
-    let tx = 0;
-    let ty = 0;
-    let hovering = false;
-    let visible = false;
-    let spinStart = 0;
-    let struck = false;
-    let raf = 0;
-    const render = () => {
-      body.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${(flip + spin + ry).toFixed(2)}deg)`;
-      coin.style.setProperty('--gx', `${(32 + ry * 1.3).toFixed(1)}%`);
-      coin.style.setProperty('--gy', `${(26 - rx * 1.3).toFixed(1)}%`);
+    const shadow = $('.coin__shadow', persona);
+    const canAnimate = !calm && typeof spinEl.animate === 'function';
+    let angle = 0;
+    let busy = false;
+    const turn = (keyframes, options) => {
+      busy = true;
+      coin.classList.add('is-turning');
+      const end = () => { busy = false; coin.classList.remove('is-turning'); };
+      spinEl.animate(keyframes, options).finished.then(end, end);
     };
-    const flipCoin = () => {
-      flipTarget += 180;
-      coin.setAttribute('aria-pressed', String((flipTarget / 180) % 2 === 1));
-      if (calm) { flip = flipTarget; render(); } else kick();
-    };
-    const frame = (t) => {
-      raf = 0;
-      if (spinStart) {
-        const k = Math.min((t - spinStart) / 2600, 1);
-        spin = -900 * Math.pow(1 - k, 3);
-        body.style.scale = String(0.72 + 0.28 * (1 - Math.pow(1 - k, 3)));
-        if (k >= 0.93 && !struck) { struck = true; stage.classList.add('is-struck'); }
-        if (k >= 1) spinStart = 0;
-      }
-      if (!hovering) { tx = Math.sin(t / 1700) * 5; ty = Math.sin(t / 2300) * 11; }
-      rx += (tx - rx) * 0.08;
-      ry += (ty - ry) * 0.08;
-      flip += (flipTarget - flip) * 0.085;
-      render();
-      if (visible) kick();
-    };
-    const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
-    coin.addEventListener('click', flipCoin);
-    render();
-    if (!calm && 'IntersectionObserver' in window) {
-      stage.addEventListener('pointermove', (e) => {
-        if (e.pointerType !== 'mouse') return;
-        const r = coin.getBoundingClientRect();
-        hovering = true;
-        ty = ((e.clientX - r.left) / r.width - 0.5) * 34;
-        tx = -((e.clientY - r.top) / r.height - 0.5) * 26;
-      });
-      stage.addEventListener('pointerleave', () => { hovering = false; });
-      const dust = makeDust($('.persona__dust', persona), { count: 50, glow: 0.9 });
-      new IntersectionObserver(([entry]) => {
-        visible = entry.isIntersecting;
-        if (visible) { dust.start(); kick(); } else dust.stop();
-      }).observe(persona);
-      // the first time the coin comes into view it spins in and lands on his face
-      spin = -900;
-      body.style.scale = '0.72';
-      render();
+
+    coin.addEventListener('click', () => {
+      if (busy) return;
+      angle += 180;
+      coin.setAttribute('aria-pressed', String(angle % 360 !== 0));
+      if (canAnimate) turn([{ transform: `rotateY(${angle - 180}deg)` }, { transform: `rotateY(${angle}deg)` }], { duration: 1100, easing: 'cubic-bezier(.3, 1.3, .45, 1)' });
+      spinEl.style.transform = `rotateY(${angle}deg)`;
+    });
+
+    if (canAnimate && 'IntersectionObserver' in window) {
+      // the first time it comes into view, the gold coin spins in and lands on his face
+      spinEl.classList.add('is-pre');
       const once = new IntersectionObserver(([entry]) => {
         if (!entry.isIntersecting) return;
         once.disconnect();
-        spinStart = performance.now();
-        kick();
+        spinEl.classList.remove('is-pre');
+        const ease = { duration: 2600, easing: 'cubic-bezier(.16, 1, .3, 1)' };
+        turn([{ transform: 'rotateY(-900deg) scale(.72)' }, { transform: 'rotateY(0deg) scale(1)' }], ease);
+        if (shadow) shadow.animate([{ transform: 'scaleX(.55)', opacity: 0.3 }, { transform: 'none', opacity: 1 }], ease);
+        setTimeout(() => stage.classList.add('is-struck'), 1500);
       }, { threshold: 0.45 });
       once.observe(coin);
+
+      seedMotes($('.persona__dust', persona), 36);
+      pauseOffscreen($('.persona__dust', persona), persona);
+    }
+
+    // with a mouse, the coin leans toward the pointer (the loop stops as soon as it settles)
+    if (!calm && window.matchMedia('(pointer: fine)').matches) {
+      let tx = 0;
+      let ty = 0;
+      let rx = 0;
+      let ry = 0;
+      let raf = 0;
+      const step = () => {
+        raf = 0;
+        rx += (tx - rx) * 0.1;
+        ry += (ty - ry) * 0.1;
+        hoverEl.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+        if (Math.abs(tx - rx) > 0.05 || Math.abs(ty - ry) > 0.05) raf = requestAnimationFrame(step);
+      };
+      const kick = () => { if (!raf) raf = requestAnimationFrame(step); };
+      stage.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        const r = coin.getBoundingClientRect();
+        ty = ((e.clientX - r.left) / r.width - 0.5) * 24;
+        tx = -((e.clientY - r.top) / r.height - 0.5) * 18;
+        kick();
+      });
+      stage.addEventListener('pointerleave', () => { tx = 0; ty = 0; kick(); });
     }
   }
 
@@ -504,7 +462,7 @@
 
     if ('IntersectionObserver' in window) {
       // load the players a little before the section scrolls in, and pause them when it leaves
-      new IntersectionObserver(([entry]) => { if (entry.isIntersecting) start(); }, { rootMargin: '900px 0px' }).observe(reelsSection);
+      new IntersectionObserver(([entry]) => { if (entry.isIntersecting) start(); }, { rootMargin: '450px 0px' }).observe(reelsSection);
       new IntersectionObserver(([entry]) => {
         if (!entry.isIntersecting) players.forEach((p) => { try { p.pause(); } catch (e) {} });
       }).observe(reelsSection);
@@ -630,10 +588,8 @@
     window.addEventListener('scroll', kick, { passive: true });
     wide.addEventListener('change', kick);
 
-    const heroDust = makeDust($('.hero__dust'), { count: 55, glow: 0.8 });
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(([entry]) => { if (entry.isIntersecting) heroDust.start(); else heroDust.stop(); }).observe(hero);
-    }
+    seedMotes($('.hero__dust'), 40);
+    pauseOffscreen($('.hero__dust'), hero);
   }
 
   /* ---------- numbers count up the first time they are seen ---------- */
